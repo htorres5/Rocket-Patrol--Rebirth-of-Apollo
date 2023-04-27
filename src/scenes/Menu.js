@@ -4,6 +4,9 @@ class Menu extends Phaser.Scene {
     }
 
     preload() {
+        // load starfield bg
+        this.load.image('starfield', './assets/starfield.png');
+        
         // load audio
         this.load.audio('sfx_select', './assets/blip_select12.wav');
         this.load.audio('sfx_explosion', './assets/explosion38.wav');
@@ -11,6 +14,26 @@ class Menu extends Phaser.Scene {
     }
 
     create() {
+
+        // place tile sprite
+        this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0);
+
+        // title text config
+        let titleConfig = {
+            fontFamily: 'Courier',
+            fontSize: '40px',
+            backgroundColor: '#F3B141',
+            color: '#00FF00',
+            strokeThickness: 4,
+            align: 'center',
+            padding: {
+            top: 5,
+            bottom: 5,
+            },
+            fixedWidth: 0
+        }
+
+
         // menu text configuration
         let menuConfig = {
             fontFamily: 'Courier',
@@ -26,7 +49,7 @@ class Menu extends Phaser.Scene {
         }
 
         //show menu text
-        this.add.text(game.config.width/2, game.config.height/2 - borderUISize - borderPadding, 'ROCKET PATROL', menuConfig).setOrigin(0.5);
+        this.add.text(game.config.width/2, game.config.height/2 - borderUISize - borderPadding - 30, 'ROCKET PATROL:\n Rebirth of Apollo', titleConfig).setOrigin(0.5);
         this.add.text(game.config.width/2, game.config.height/2, 'Use ←→ arrows to move & (F) to fire', menuConfig).setOrigin(0.5);
 
         menuConfig.backgroundColor ='#00FF00'
@@ -40,6 +63,8 @@ class Menu extends Phaser.Scene {
     }
 
     update() {
+        this.starfield.tilePositionX -= 4;
+
         if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             // easy mode
             game.settings = {
