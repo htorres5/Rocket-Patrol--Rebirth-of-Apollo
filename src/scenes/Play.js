@@ -11,7 +11,16 @@ class Play extends Phaser.Scene {
         
         // load spritesheet
         this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
-      }
+    }
+
+    onEvent ()
+    {
+        this.initialTime -= 1; // One second
+        if(this.initialTime <= 5) {
+            this.sound.play('sfx_select');
+        }
+        this.clockUI.setText(this.initialTime);
+    }
 
     create() {
         // place tile sprite
@@ -63,14 +72,49 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         }
+
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig);
 
         // GAME OVER flag
         this.gameOver = false;
 
-        // 
-        // 60-second play clock
+        // Clock UI
+        // if(game.settings.gameTimer == 30000) {
+        //     this.initialTime = 30;
+        // } else {
+        //     this.initialTime = 60;
+        // }
+
+        this.initialTime = Math.floor((game.settings.gameTimer-(game.settings.gameTimer%1000))/1000);
+
+        // Clock Text Style
+        let clockConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            color: '#843605',
+            padding: {
+            top: 5,
+            bottom: 5,
+            },
+        }
+
+        this.clockUI = this.add.text(game.config.width/2, borderUISize + borderPadding*2, this.initialTime, clockConfig).setOrigin(0.5, 0);
+
+        // Each 1000 ms call onEvent
+        this.timedEvent = this.time.addEvent({ delay: 1000, callback: this.onEvent, callbackScope: this, loop: true });
+
+
+        // 30-second (15 sec EXPERT) Speedup
+        // * change to If statement using initialTime in update();
+        this.speedupClock = this.time.delayedCall(game.settings.gameTimer/2, () => { this.p1Rocket.speedup(3);
+             this.ship01.speedup(2);           // update spaceships speed (x3)
+             this.ship02.speedup(2); 
+             this.ship03.speedup(2)}, null, this)
+
+        // 60-second (30 sec EXPERT) play clock
         scoreConfig.fixedWidth = 0;
+
+        // * change to If statement using initialTime in update();
         this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
@@ -79,6 +123,12 @@ class Play extends Phaser.Scene {
     }
 
     update() {
+        //console.log(this.time.now);
+        //console.log(game.settings.gameTimer/2);
+
+        if(this.gameOver) {
+            this.timedEvent.remove();
+        }
 
         // check key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyR)) {
@@ -113,7 +163,7 @@ class Play extends Phaser.Scene {
         }
     }
 
-      checkCollision(rocket, ship) {
+    checkCollision(rocket, ship) {
         // simple AABB checking
         if (rocket.x < ship.x + ship.width && 
           rocket.x + rocket.width > ship.x && 
@@ -136,6 +186,9 @@ class Play extends Phaser.Scene {
           ship.alpha = 1;                       // make ship visible again
           boom.destroy();                       // remove explosion sprite
         });       
+
+        // Add Time
+        this.initialTime += 5;
 
         // score add and repaint
         this.p1Score += ship.points;
