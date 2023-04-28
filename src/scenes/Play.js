@@ -78,7 +78,7 @@ class Play extends Phaser.Scene {
 
         // play music
         this.music = this.sound.add('battle', {volume: 0.25, loop: true});
-        //this.music.play();
+        this.music.play();
 
         // add rocket (p1)
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
@@ -190,7 +190,7 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', this.scoreConfig).setOrigin(0.5);
 
-            music.stop();
+            this.music.stop();
 
             // Save High Score
             if(this.p1Score > this.highScore) {
