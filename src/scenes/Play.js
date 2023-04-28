@@ -13,8 +13,14 @@ class Play extends Phaser.Scene {
         this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
     }
 
-    updateTimer ()
-    {
+    supportsLocalStorage() {
+        try {
+            return 'localStorage' in window && window['localStorage'] !== null;
+        } catch (e) {
+            return false;
+        }
+    }
+    updateTimer () {
         this.currentTime -= 1; // One second
         if((this.currentTime <= 5) && (this.currentTime >= 1)) {
             this.sound.play('sfx_select');
@@ -25,7 +31,6 @@ class Play extends Phaser.Scene {
     }
 
     speedupGame () {
-        console.log("Called");
         if (this.multiplier <= 5) {
             this.multiplier += 0.25;
         }
@@ -34,6 +39,14 @@ class Play extends Phaser.Scene {
         this.ship01.speedup(this.multiplier);           
         this.ship02.speedup(this.multiplier); 
         this.ship03.speedup(this.multiplier);
+    }
+
+    saveHighScore () {
+        if (!this.supportsLocalStorage()) { return false; }
+        this.savedHighScore = true;
+        localStorage.setItem('this.savedHighScore', `${this.savedHighScore}`);
+        localStorage.setItem('this.highScore', `${this.highScore}`);
+        return true;
     }
 
     create() {
@@ -91,8 +104,15 @@ class Play extends Phaser.Scene {
 
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig);
 
-        this.highScore = 200;
+        console.log(`test: ${localStorage.getItem('this.savedHighScore')}`);
+        this.savedHighScore = (localStorage.getItem('this.savedHighScore') == "true");
+
+        this.highScore = (!this.savedHighScore) ? 0 : parseInt(localStorage.getItem('this.highScore'));
+
+        console.log(this.highScore);
+        
         this.highScoreUI = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3, this.highScore, this.scoreConfig).setOrigin(0.5,0)
+        
         this.scoreConfig.fontSize = '12px';
         this.highScoreUIText = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 15, 'HIGH SCORE', this.scoreConfig).setOrigin(0.5,0)
 
@@ -158,6 +178,13 @@ class Play extends Phaser.Scene {
         if(this.currentTime == 0) {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', this.scoreConfig).setOrigin(0.5);
+
+            // Save High Score
+            if(this.p1Score > this.highScore) {
+                this.highScore = this.p1Score;
+                console.log(this.saveHighScore());
+                this.saveHighScore();
+            }
             this.gameOver = true;
         }
 
