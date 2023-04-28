@@ -8,6 +8,11 @@ class Menu extends Phaser.Scene {
         this.load.image('starfield', './assets/starfield.png');
         
         // load audio
+
+        // music
+        this.load.audio('battle', './assets/RetroRPG_Battle2_loop.mp3');
+
+        // sfx
         this.load.audio('game_over', './assets/game_over.wav')
         this.load.audio('sfx_select', './assets/blip_select12.wav');
         this.load.audio('sfx_explosion', './assets/explosion38.wav');
@@ -83,6 +88,7 @@ class Menu extends Phaser.Scene {
                 spaceshipSpeed: 5,
                 gameTimer: 15000,
             }
+
             this.sound.play('sfx_select');
             this.scene.start('playScene');    
         }

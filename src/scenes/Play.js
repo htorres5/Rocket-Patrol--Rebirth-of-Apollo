@@ -4,6 +4,10 @@ class Play extends Phaser.Scene {
     }
 
     preload() {
+
+        // load music
+        //this.load.audio('battle', './assets/RetroRPG_Battle2_loop.mp3');
+
         // load images/tile sprites
         this.load.image('rocket', './assets/rocket.png');
         this.load.image('spaceship', './assets/spaceship.png');
@@ -32,9 +36,10 @@ class Play extends Phaser.Scene {
     }
 
     speedupGame () {
-        if (this.multiplier <= 5) {
-            this.multiplier += 0.25;
+        if (this.multiplier <= 2) {
+            this.multiplier += 0.1;
         }
+
         // update speed (x4)
         this.p1Rocket.speedup(this.multiplier);
         this.ship01.speedup(this.multiplier);           
@@ -70,6 +75,10 @@ class Play extends Phaser.Scene {
         this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
+
+        // play music
+        this.music = this.sound.add('battle', {volume: 0.25, loop: true});
+        //this.music.play();
 
         // add rocket (p1)
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
@@ -180,6 +189,8 @@ class Play extends Phaser.Scene {
         if(this.currentTime == 0) {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', this.scoreConfig).setOrigin(0.5);
+
+            music.stop();
 
             // Save High Score
             if(this.p1Score > this.highScore) {
