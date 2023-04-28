@@ -8,6 +8,7 @@ class Menu extends Phaser.Scene {
         this.load.image('starfield', './assets/starfield.png');
         
         // load audio
+        this.load.audio('game_over', './assets/game_over.wav')
         this.load.audio('sfx_select', './assets/blip_select12.wav');
         this.load.audio('sfx_explosion', './assets/explosion38.wav');
         this.load.audio('sfx_rocket', './assets/rocket_shot.wav');
@@ -78,7 +79,7 @@ class Menu extends Phaser.Scene {
             // hard mode
             game.settings = {
                 spaceshipSpeed: 5,
-                gameTimer: 30000    
+                gameTimer: 30000
             }
             this.sound.play('sfx_select');
             this.scene.start('playScene');    

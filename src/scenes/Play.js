@@ -13,13 +13,27 @@ class Play extends Phaser.Scene {
         this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
     }
 
-    onEvent ()
+    updateTimer ()
     {
-        this.initialTime -= 1; // One second
-        if(this.initialTime <= 5) {
+        this.currentTime -= 1; // One second
+        if((this.currentTime <= 5) && (this.currentTime >= 1)) {
             this.sound.play('sfx_select');
+        } else if (this.currentTime == 0) {
+            this.sound.play('game_over');
         }
-        this.clockUI.setText(this.initialTime);
+        this.clockUI.setText(this.currentTime);
+    }
+
+    speedupGame () {
+        console.log("Called");
+        if (this.multiplier <= 5) {
+            this.multiplier += 0.25;
+        }
+        // update speed (x4)
+        this.p1Rocket.speedup(this.multiplier);
+        this.ship01.speedup(this.multiplier);           
+        this.ship02.speedup(this.multiplier); 
+        this.ship03.speedup(this.multiplier);
     }
 
     create() {
@@ -60,7 +74,7 @@ class Play extends Phaser.Scene {
         this.p1Score = 0;
 
         // display score
-        let scoreConfig = {
+        this.scoreConfig = {
             fontFamily: 'Courier',
             fontSize: '28px',
             backgroundColor: '#F3B141',
@@ -68,24 +82,24 @@ class Play extends Phaser.Scene {
             align: 'right',
             padding: {
             top: 5,
+            left: 5,
+            right: 5,
             bottom: 5,
             },
             fixedWidth: 100
         }
 
-        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig);
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig);
 
-        // GAME OVER flag
-        this.gameOver = false;
+        this.highScore = 200;
+        this.highScoreUI = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3, this.highScore, this.scoreConfig).setOrigin(0.5,0)
+        this.scoreConfig.fontSize = '12px';
+        this.highScoreUIText = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 15, 'HIGH SCORE', this.scoreConfig).setOrigin(0.5,0)
 
         // Clock UI
-        // if(game.settings.gameTimer == 30000) {
-        //     this.initialTime = 30;
-        // } else {
-        //     this.initialTime = 60;
-        // }
 
-        this.initialTime = Math.floor((game.settings.gameTimer-(game.settings.gameTimer%1000))/1000);
+        // Current Time
+        this.currentTime = Math.floor((game.settings.gameTimer-(game.settings.gameTimer%1000))/1000);
 
         // Clock Text Style
         let clockConfig = {
@@ -98,36 +112,58 @@ class Play extends Phaser.Scene {
             },
         }
 
-        this.clockUI = this.add.text(game.config.width/2, borderUISize + borderPadding*2, this.initialTime, clockConfig).setOrigin(0.5, 0);
+        // Render Timer
+        this.clockUI = this.add.text(game.config.width/2, borderUISize + borderPadding*2, this.currentTime, clockConfig).setOrigin(0.5, 0);
 
-        // Each 1000 ms call onEvent
-        this.timedEvent = this.time.addEvent({ delay: 1000, callback: this.onEvent, callbackScope: this, loop: true });
+        // Each 1000 ms call updateTimer
+        this.timerUpdate = this.time.addEvent({ delay: 1000, callback: this.updateTimer, callbackScope: this, loop: true });
 
+        // Render Added Time Text
+        this.isAddedTimeVisible = false;
+        this.extraTime = 1;
 
-        // 30-second (15 sec EXPERT) Speedup
-        // * change to If statement using initialTime in update();
-        this.speedupClock = this.time.delayedCall(game.settings.gameTimer/2, () => { this.p1Rocket.speedup(3);
-             this.ship01.speedup(2);           // update spaceships speed (x3)
-             this.ship02.speedup(2); 
-             this.ship03.speedup(2)}, null, this)
+        this.addTimeUI = this.add.text(game.config.width/2 + 20, borderUISize + borderPadding*2, '', clockConfig).setOrigin(0, 0);
 
-        // 60-second (30 sec EXPERT) play clock
-        scoreConfig.fixedWidth = 0;
+        // Speedup Game Every 30 Seconds (15 Seconds Expert)
+        this.multiplier = 1;
 
-        // * change to If statement using initialTime in update();
-        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
-            this.gameOver = true;
-        }, null, this);
+        this.speedupUpdate = this.time.addEvent({ delay: game.settings.gameTimer/2, callback: this.speedupGame, callbackScope: this, loop: true });
+
+        // // 30-second (15 sec EXPERT) Speedup
+        // // * change to If statement using currentTime in update();
+        // this.speedupClock = this.time.delayedCall(game.settings.gameTimer/2, () => { this.p1Rocket.speedup(3);
+        //      this.ship01.speedup(2);           // update spaceships speed (x3)
+        //      this.ship02.speedup(2); 
+        //      this.ship03.speedup(2)}, null, this)
+
+        this.scoreConfig.fontSize = '28px';
+        this.scoreConfig.fixedWidth = 0;
+
+        // GAME OVER flag
+        this.gameOver = false;
+
+        // // * change to If statement using currentTime in update();
+        // this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
+        //     this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
+        //     this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', this.scoreConfig).setOrigin(0.5);
+        //     this.gameOver = true;
+        // }, null, this);
     }
 
     update() {
         //console.log(this.time.now);
         //console.log(game.settings.gameTimer/2);
 
+        // If the time reaches 0...
+        if(this.currentTime == 0) {
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', this.scoreConfig).setOrigin(0.5);
+            this.gameOver = true;
+        }
+
         if(this.gameOver) {
-            this.timedEvent.remove();
+            this.timerUpdate.remove();
+            this.speedupUpdate.remove();
         }
 
         // check key input for restart
@@ -188,7 +224,15 @@ class Play extends Phaser.Scene {
         });       
 
         // Add Time
-        this.initialTime += 5;
+        this.currentTime += this.extraTime;
+        if (this.isAddedTimeVisible == false) {
+            this.addTimeUI.text = `+${this.extraTime}`;
+            this.isAddedTimeVisible = true;
+            this.time.delayedCall(this.extraTime*1000, () => {
+                this.addTimeUI.text = '';
+                this.isAddedTimeVisible = false;
+            })
+        }
 
         // score add and repaint
         this.p1Score += ship.points;
