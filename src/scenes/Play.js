@@ -20,6 +20,7 @@ class Play extends Phaser.Scene {
             return false;
         }
     }
+
     updateTimer () {
         this.currentTime -= 1; // One second
         if((this.currentTime <= 5) && (this.currentTime >= 1)) {
@@ -43,9 +44,17 @@ class Play extends Phaser.Scene {
 
     saveHighScore () {
         if (!this.supportsLocalStorage()) { return false; }
+        
         this.savedHighScore = true;
-        localStorage.setItem('this.savedHighScore', `${this.savedHighScore}`);
-        localStorage.setItem('this.highScore', `${this.highScore}`);
+
+        if (game.settings.difficulty == 'novice') {
+            localStorage.setItem('savedHighScoreNovice', `${this.savedHighScore}`);
+            localStorage.setItem('highScoreNovice', `${this.highScore}`);
+        } else if (game.settings.difficulty == 'expert') {
+            localStorage.setItem('savedHighScoreExpert', `${this.savedHighScore}`);
+            localStorage.setItem('highScoreExpert', `${this.highScore}`);
+        }
+
         return true;
     }
 
@@ -104,10 +113,16 @@ class Play extends Phaser.Scene {
 
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig);
 
-        console.log(`test: ${localStorage.getItem('this.savedHighScore')}`);
-        this.savedHighScore = (localStorage.getItem('this.savedHighScore') == "true");
+        //console.log(`test: ${localStorage.getItem('this.savedHighScore')}`);
 
-        this.highScore = (!this.savedHighScore) ? 0 : parseInt(localStorage.getItem('this.highScore'));
+        if (game.settings.difficulty == 'novice') {
+            this.savedHighScore = (localStorage.getItem('savedHighScoreNovice') == "true");
+            this.highScore = (!this.savedHighScore) ? 0 : parseInt(localStorage.getItem('highScoreNovice'));
+        } else if (game.settings.difficulty == 'expert') {
+            this.savedHighScore = (localStorage.getItem('savedHighScoreExpert') == "true");
+            this.highScore = (!this.savedHighScore) ? 0 : parseInt(localStorage.getItem('highScoreExpert'));
+        }
+
 
         console.log(this.highScore);
         
@@ -149,25 +164,12 @@ class Play extends Phaser.Scene {
 
         this.speedupUpdate = this.time.addEvent({ delay: game.settings.gameTimer/2, callback: this.speedupGame, callbackScope: this, loop: true });
 
-        // // 30-second (15 sec EXPERT) Speedup
-        // // * change to If statement using currentTime in update();
-        // this.speedupClock = this.time.delayedCall(game.settings.gameTimer/2, () => { this.p1Rocket.speedup(3);
-        //      this.ship01.speedup(2);           // update spaceships speed (x3)
-        //      this.ship02.speedup(2); 
-        //      this.ship03.speedup(2)}, null, this)
-
         this.scoreConfig.fontSize = '28px';
         this.scoreConfig.fixedWidth = 0;
 
         // GAME OVER flag
         this.gameOver = false;
 
-        // // * change to If statement using currentTime in update();
-        // this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-        //     this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
-        //     this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', this.scoreConfig).setOrigin(0.5);
-        //     this.gameOver = true;
-        // }, null, this);
     }
 
     update() {
