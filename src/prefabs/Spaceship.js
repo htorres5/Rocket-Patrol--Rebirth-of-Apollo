@@ -13,7 +13,6 @@ class Spaceship extends Phaser.GameObjects.Sprite {
 
    speedup(multiplier) {
       this.moveSpeed = this.initialSpeed*multiplier;
-      console.log(this.moveSpeed);
    }
 
    update() {

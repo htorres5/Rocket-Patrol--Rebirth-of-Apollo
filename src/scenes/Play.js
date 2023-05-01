@@ -27,10 +27,14 @@ class Play extends Phaser.Scene {
     }
 
     create() {
+
+        // * BACKGROUND * //
+
         // place tile sprites
         this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0);
         this.planets = this.add.tileSprite(0, 0, 640, 480, 'planets').setOrigin(0, 0);
         
+        // * UI * //
 
         // green UI Background
         this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0x00FF00).setOrigin(0, 0);
@@ -41,9 +45,13 @@ class Play extends Phaser.Scene {
         this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
 
+        // * MUSIC * //
+
         // play music
         this.music = this.sound.add('battle', {volume: 0.25, loop: true});
         this.music.play();
+
+        // * PREFABS * //
 
         // add rocket (p1)
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
@@ -60,6 +68,8 @@ class Play extends Phaser.Scene {
         this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*5, 'spaceship', 0, 30, 1).setOrigin(0, 0);
         this.ship02 = new Spaceship(this, game.config.width, borderUISize*8 + borderPadding*2, 'spaceship', 0, 20, 1).setOrigin(0,0);
 
+        // * PARTICLE EFFECTS * //
+
         this.lifespan = 350;
         // Explosion Particles
         this.emitter = this.add.particles(0, 0, 'flares', {
@@ -72,18 +82,15 @@ class Play extends Phaser.Scene {
             emitting: false
         });
 
+        // * CONTROLS * //
+
         // define keys
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-        // animation config
-        this.anims.create({
-            key: 'explode',
-            frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 9, first: 0}),
-            frameRate: 30
-        });
+        // * SCORE UI * //
 
         // initialize score
         this.p1Score = 0;
@@ -113,14 +120,13 @@ class Play extends Phaser.Scene {
             this.savedHighScore = (localStorage.getItem('savedHighScoreExpert') == "true");
             this.highScore = (!this.savedHighScore) ? 0 : parseInt(localStorage.getItem('highScoreExpert'));
         }
-
-
-        console.log(this.highScore);
-        
+     
         this.highScoreUI = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3, this.highScore, this.scoreConfig).setOrigin(0.5,0)
         
         this.scoreConfig.fontSize = '12px';
-        this.highScoreUIText = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 15, 'HIGH SCORE', this.scoreConfig).setOrigin(0.5,0)
+        this.highScoreUIText = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 15, 'HIGH SCORE', this.scoreConfig).setOrigin(0.5,0);
+
+        // * COMBO UI * //
 
         // Combo
         this.combo = 0;
@@ -131,7 +137,7 @@ class Play extends Phaser.Scene {
         this.scoreConfig.fixedWidth = 0;
         this.comboUI =this.add.text(game.config.width/2, borderUISize + borderPadding*4.5, ``, this.scoreConfig).setOrigin(0.5, 0);
 
-        // Clock UI
+        // * CLOCK UI * //
 
         // Current Time
         this.currentTime = Math.floor((game.settings.gameTimer-(game.settings.gameTimer%1000))/1000);
@@ -159,10 +165,14 @@ class Play extends Phaser.Scene {
 
         this.addTimeUI = this.add.text(game.config.width/2 + 20, borderUISize + borderPadding*2, '', clockConfig).setOrigin(0, 0);
 
+        // * SPEED UP * //
+
         // Speedup Game Every 30 Seconds (15 Seconds Expert)
         this.multiplier = 1;
 
         this.speedupUpdate = this.time.addEvent({ delay: 10000, callback: this.speedupGame, callbackScope: this, loop: true });
+
+        // * GAME OVER * //
 
         this.scoreConfig.backgroundColor = '#F3B141';
         this.scoreConfig.fontSize = '16px';
@@ -174,8 +184,8 @@ class Play extends Phaser.Scene {
     }
 
     update() {
-        //console.log(this.time.now);
-        //console.log(game.settings.gameTimer/2);
+
+        // * GAME OVER * //
 
         // If the time reaches 0...
         if(this.currentTime == 0) {
@@ -187,7 +197,6 @@ class Play extends Phaser.Scene {
             // Save High Score
             if(this.p1Score > this.highScore) {
                 this.highScore = this.p1Score;
-                console.log(this.saveHighScore());
                 this.saveHighScore();
             }
             this.gameOver = true;
@@ -207,9 +216,13 @@ class Play extends Phaser.Scene {
             this.scene.start("menuScene");
         }
 
+        // * PARALLAX SCROLLING (REAL) * //
+
         this.starfield.tilePositionX -= 4;
         this.planets.tilePositionX -= 8;
         
+        // * GAMEPLAY * //
+
         if (!this.gameOver) {               
             this.p1Rocket.update();         // update rocket sprite
             this.ship00.update();           // update spaceships (x5)
@@ -238,13 +251,14 @@ class Play extends Phaser.Scene {
 
         // break combo if hit ceiling
         if(this.p1Rocket.breakCombo == true) {
-            console.log("yes")
             this.combo = 0;
             this.comboUI.text = ``;
             this.p1Rocket.breakCombo = false;
+            this.sound.play('combo_break');
         }
     }
 
+    // * Called every second to update UI
     updateTimer () {
         this.currentTime -= 1; // One second
         if((this.currentTime <= 5) && (this.currentTime >= 1)) {
@@ -255,6 +269,7 @@ class Play extends Phaser.Scene {
         this.clockUI.setText(this.currentTime);
     }
 
+    // * Speeds up the game * multiplier up to a certain point
     speedupGame () {
         if (this.multiplier <= 3) {
             this.multiplier += 0.2;
@@ -268,6 +283,7 @@ class Play extends Phaser.Scene {
         this.ship007.speedup(this.multiplier);
     }
 
+    // * Saves High Score for each game mode to local storage
     saveHighScore () {
         if (!this.supportsLocalStorage()) { return false; }
         
@@ -296,8 +312,9 @@ class Play extends Phaser.Scene {
         }
     }
     
+    // * On ship explode...
     shipExplode(ship) {
-        console.log(ship.constructor.name);
+        
         // temporarily hide ship
         ship.alpha = 0;
 

@@ -14,6 +14,7 @@ class Menu extends Phaser.Scene {
         this.load.audio('battle', './assets/RetroRPG_Battle2_loop.mp3');
 
         // sfx
+        this.load.audio('combo_break', './assets/comboBreak.wav')
         this.load.audio('game_over', './assets/game_over.wav')
         this.load.audio('sfx_select', './assets/blip_select12.wav');
         this.load.audio('sfx_explosion', './assets/explosion38.wav');
@@ -72,6 +73,8 @@ class Menu extends Phaser.Scene {
     }
 
     update() {
+        // * PARALLAX SCROLLING (REAL) * //
+
         this.starfield.tilePositionX -= 4;
         this.planets.tilePositionX -= 8;
 

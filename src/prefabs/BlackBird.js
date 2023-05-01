@@ -13,7 +13,6 @@ class BlackBird extends Spaceship {
 
    speedup(multiplier) {
       this.moveSpeed = this.initialSpeed*multiplier;
-      console.log(this.moveSpeed);
    }
 
    update() {
