@@ -122,6 +122,15 @@ class Play extends Phaser.Scene {
         this.scoreConfig.fontSize = '12px';
         this.highScoreUIText = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 15, 'HIGH SCORE', this.scoreConfig).setOrigin(0.5,0)
 
+        // Combo
+        this.combo = 0;
+
+        // Combo UI 
+        this.scoreConfig.fontSize = '16px';
+        this.scoreConfig.backgroundColor = '';
+        this.scoreConfig.fixedWidth = 0;
+        this.comboUI =this.add.text(game.config.width/2, borderUISize + borderPadding*4.5, ``, this.scoreConfig).setOrigin(0.5, 0);
+
         // Clock UI
 
         // Current Time
@@ -155,6 +164,7 @@ class Play extends Phaser.Scene {
 
         this.speedupUpdate = this.time.addEvent({ delay: 10000, callback: this.speedupGame, callbackScope: this, loop: true });
 
+        this.scoreConfig.backgroundColor = '#F3B141';
         this.scoreConfig.fontSize = '16px';
         this.scoreConfig.fixedWidth = 0;
 
@@ -224,6 +234,14 @@ class Play extends Phaser.Scene {
         if(this.checkCollision(this.p1Rocket, this.ship00)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship00); 
+        }
+
+        // break combo if hit ceiling
+        if(this.p1Rocket.breakCombo == true) {
+            console.log("yes")
+            this.combo = 0;
+            this.comboUI.text = ``;
+            this.p1Rocket.breakCombo = false;
         }
     }
 
@@ -301,10 +319,14 @@ class Play extends Phaser.Scene {
             })
         }
 
+        // add to combo
+        this.combo += 1;
+        this.comboUI.text = `COMBO x${this.combo}`;
+
         // score add and repaint
-        this.p1Score += ship.points;
+        this.p1Score += ship.points*this.combo;
         this.scoreLeft.text = this.p1Score;
-        
+
         // play BOOM
         if(ship.constructor.name == "BlackBird") {
             this.sound.play('sfx_explosion_01');
