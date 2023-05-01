@@ -27,8 +27,10 @@ class Play extends Phaser.Scene {
     }
 
     create() {
-        // place tile sprite
+        // place tile sprites
         this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0);
+        this.planets = this.add.tileSprite(0, 0, 640, 480, 'planets').setOrigin(0, 0);
+        
 
         // green UI Background
         this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0x00FF00).setOrigin(0, 0);
@@ -46,18 +48,18 @@ class Play extends Phaser.Scene {
         // add rocket (p1)
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
         
-        // add spaceships (x3)
+        // add spaceships (x5)
 
         // BlackBird 1: Agent Joe
-        this.ship00 = new BlackBird(this, game.config.width + borderUISize*8, borderUISize*3 + borderPadding*2, 'blackbird', 0, 50).setOrigin(0,0);
+        this.ship00 = new BlackBird(this, game.config.width + borderUISize*8, borderUISize*3 + borderPadding*2, 'blackbird', 0, 50, 1).setOrigin(0,0);
 
         // Black Bird 007: Special Agent Craig
-        this.ship007 = new BlackBird(this, game.config.width + borderUISize*3, borderUISize*6 + borderPadding*2,'blackbird', 0, 50).setOrigin(0,0);
+        this.ship007 = new BlackBird(this, game.config.width + borderUISize*3, borderUISize*6 + borderPadding*2,'blackbird', 0, 50, 1).setOrigin(0,0);
 
         // Spaceships: Rick, Richard and Ronnie
-        this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*5, 'spaceship', 0, 30).setOrigin(0, 0);
-        this.ship02 = new Spaceship(this, game.config.width, borderUISize*8 + borderPadding*2, 'spaceship', 0, 20).setOrigin(0,0);
-        this.ship03 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*10, 'spaceship', 0, 10).setOrigin(0,0);
+        this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*5, 'spaceship', 0, 30, 1).setOrigin(0, 0);
+        this.ship02 = new Spaceship(this, game.config.width, borderUISize*8 + borderPadding*2, 'spaceship', 0, 20, 1).setOrigin(0,0);
+        this.ship03 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*10, 'spaceship', 0, 10, 1).setOrigin(0,0);
 
         this.lifespan = 350;
         // Explosion Particles
@@ -152,7 +154,7 @@ class Play extends Phaser.Scene {
         // Speedup Game Every 30 Seconds (15 Seconds Expert)
         this.multiplier = 1;
 
-        this.speedupUpdate = this.time.addEvent({ delay: game.settings.gameTimer/2, callback: this.speedupGame, callbackScope: this, loop: true });
+        this.speedupUpdate = this.time.addEvent({ delay: 10000, callback: this.speedupGame, callbackScope: this, loop: true });
 
         this.scoreConfig.fontSize = '28px';
         this.scoreConfig.fixedWidth = 0;
@@ -197,6 +199,7 @@ class Play extends Phaser.Scene {
         }
 
         this.starfield.tilePositionX -= 4;
+        this.planets.tilePositionX -= 8;
         
         if (!this.gameOver) {               
             this.p1Rocket.update();         // update rocket sprite
@@ -241,12 +244,12 @@ class Play extends Phaser.Scene {
     }
 
     speedupGame () {
-        if (this.multiplier <= 2) {
-            this.multiplier += 0.1;
+        if (this.multiplier <= 3) {
+            this.multiplier += 0.2;
         }
 
-        // update speed (x4)
-        this.p1Rocket.speedup(this.multiplier);
+        // update speed (x5)
+        this.p1Rocket.speedup(this.multiplier-0.1);
         this.ship00.speedup(this.multiplier);
         this.ship01.speedup(this.multiplier);           
         this.ship02.speedup(this.multiplier); 
@@ -283,32 +286,23 @@ class Play extends Phaser.Scene {
     }
     
     shipExplode(ship) {
+        console.log(ship.constructor.name);
         // temporarily hide ship
         ship.alpha = 0;
 
         // create explosion effect at ship's position
-        let boom = this.emitter.explode(16, ship.x, ship.y);
+        this.emitter.explode(16, ship.x, ship.y);
         this.time.delayedCall(this.lifespan, () => {
             ship.reset();                         // reset ship position
-            ship.alpha = 1;                       // make ship visible again
-            //boom.destroy();    
+            ship.alpha = 1;                       // make ship visible again 
         })
 
-        // // create explosion sprite at ship's position
-        // let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
-        // boom.anims.play('explode');             // play explode animation
-        // boom.on('animationcomplete', () => {    // callback after anim completes
-        //   ship.reset();                         // reset ship position
-        //   ship.alpha = 1;                       // make ship visible again
-        //   boom.destroy();                       // remove explosion sprite
-        // });       
-        
         // Add Time
-        this.currentTime += this.extraTime;
+        this.currentTime += ship.extraTime;
         if (this.isAddedTimeVisible == false) {
-            this.addTimeUI.text = `+${this.extraTime}`;
+            this.addTimeUI.text = `+${ship.extraTime}`;
             this.isAddedTimeVisible = true;
-            this.time.delayedCall(this.extraTime*1000, () => {
+            this.time.delayedCall(1000, () => {
                 this.addTimeUI.text = '';
                 this.isAddedTimeVisible = false;
             })
@@ -319,6 +313,10 @@ class Play extends Phaser.Scene {
         this.scoreLeft.text = this.p1Score;
         
         // play BOOM
-        this.sound.play('sfx_explosion');
+        if(ship.constructor.name == "BlackBird") {
+            this.sound.play('sfx_explosion_01');
+        } else if(ship.constructor.name == "Spaceship") {
+            this.sound.play('sfx_explosion');
+        }
       }
 }

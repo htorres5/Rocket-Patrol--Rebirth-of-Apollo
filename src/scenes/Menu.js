@@ -4,8 +4,9 @@ class Menu extends Phaser.Scene {
     }
 
     preload() {
-        // load starfield bg
+        // load bgs
         this.load.image('starfield', './assets/starfield.png');
+        this.load.image('planets', './assets/planets.png')
         
         // load audio
 
@@ -16,13 +17,15 @@ class Menu extends Phaser.Scene {
         this.load.audio('game_over', './assets/game_over.wav')
         this.load.audio('sfx_select', './assets/blip_select12.wav');
         this.load.audio('sfx_explosion', './assets/explosion38.wav');
+        this.load.audio('sfx_explosion_01','./assets/explosion01.wav');
         this.load.audio('sfx_rocket', './assets/rocket_shot.wav');
     }
 
     create() {
 
-        // place tile sprite
-        this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0);
+        // place tile sprites
+        this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0)
+        this.planets = this.add.tileSprite(0, 0, 640, 480, 'planets').setOrigin(0, 0)
 
         // title text config
         let titleConfig = {
@@ -70,6 +73,7 @@ class Menu extends Phaser.Scene {
 
     update() {
         this.starfield.tilePositionX -= 4;
+        this.planets.tilePositionX -= 8;
 
         if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             // easy mode
