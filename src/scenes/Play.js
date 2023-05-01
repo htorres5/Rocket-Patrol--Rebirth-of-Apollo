@@ -59,7 +59,6 @@ class Play extends Phaser.Scene {
         // Spaceships: Rick, Richard and Ronnie
         this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*5, 'spaceship', 0, 30, 1).setOrigin(0, 0);
         this.ship02 = new Spaceship(this, game.config.width, borderUISize*8 + borderPadding*2, 'spaceship', 0, 20, 1).setOrigin(0,0);
-        this.ship03 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*10, 'spaceship', 0, 10, 1).setOrigin(0,0);
 
         this.lifespan = 350;
         // Explosion Particles
@@ -91,8 +90,8 @@ class Play extends Phaser.Scene {
 
         // display score
         this.scoreConfig = {
-            fontFamily: 'Courier',
-            fontSize: '28px',
+            fontFamily: 'Pixel_NES',
+            fontSize: '20px',
             backgroundColor: '#F3B141',
             color: '#843605',
             align: 'right',
@@ -130,7 +129,7 @@ class Play extends Phaser.Scene {
 
         // Clock Text Style
         let clockConfig = {
-            fontFamily: 'Courier',
+            fontFamily: 'Pixel_NES',
             fontSize: '28px',
             color: '#843605',
             padding: {
@@ -156,7 +155,7 @@ class Play extends Phaser.Scene {
 
         this.speedupUpdate = this.time.addEvent({ delay: 10000, callback: this.speedupGame, callbackScope: this, loop: true });
 
-        this.scoreConfig.fontSize = '28px';
+        this.scoreConfig.fontSize = '16px';
         this.scoreConfig.fixedWidth = 0;
 
         // GAME OVER flag
@@ -206,7 +205,6 @@ class Play extends Phaser.Scene {
             this.ship00.update();           // update spaceships (x5)
             this.ship01.update();
             this.ship02.update();
-            this.ship03.update();
             this.ship007.update();
         } 
 
@@ -214,10 +212,6 @@ class Play extends Phaser.Scene {
         if(this.checkCollision(this.p1Rocket, this.ship007)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship007); 
-        }
-        if(this.checkCollision(this.p1Rocket, this.ship03)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship03); 
         }
         if (this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset();
@@ -251,9 +245,8 @@ class Play extends Phaser.Scene {
         // update speed (x5)
         this.p1Rocket.speedup(this.multiplier-0.1);
         this.ship00.speedup(this.multiplier);
-        this.ship01.speedup(this.multiplier);           
+        this.ship01.speedup(this.multiplier);
         this.ship02.speedup(this.multiplier); 
-        this.ship03.speedup(this.multiplier);
         this.ship007.speedup(this.multiplier);
     }
 

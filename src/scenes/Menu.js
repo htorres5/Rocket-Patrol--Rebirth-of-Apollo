@@ -29,7 +29,7 @@ class Menu extends Phaser.Scene {
 
         // title text config
         let titleConfig = {
-            fontFamily: 'Courier',
+            fontFamily: 'Pixel_NES',
             fontSize: '40px',
             backgroundColor: '#F3B141',
             color: '#00FF00',
@@ -45,8 +45,8 @@ class Menu extends Phaser.Scene {
 
         // menu text configuration
         let menuConfig = {
-            fontFamily: 'Courier',
-            fontSize: '28px',
+            fontFamily: 'Pixel_NES',
+            fontSize: '16px',
             backgroundColor: '#F3B141',
             color: '#843605',
             align: 'right',
