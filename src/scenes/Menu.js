@@ -73,7 +73,7 @@ class Menu extends Phaser.Scene {
     }
 
     update() {
-        // * PARALLAX SCROLLING (REAL) * //
+        // * PARALLAX SCROLLING  * //
 
         this.starfield.tilePositionX -= 4;
         this.planets.tilePositionX -= 8;
