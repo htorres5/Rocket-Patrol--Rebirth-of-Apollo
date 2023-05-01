@@ -3,20 +3,6 @@ class Play extends Phaser.Scene {
         super("playScene");
     }
 
-    preload() {
-
-        // load music
-        //this.load.audio('battle', './assets/RetroRPG_Battle2_loop.mp3');
-
-        // load images/tile sprites
-        this.load.image('rocket', './assets/rocket.png');
-        this.load.image('spaceship', './assets/spaceship.png');
-        this.load.image('starfield', './assets/starfield.png');
-        
-        // load spritesheet
-        this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
-    }
-
     supportsLocalStorage() {
         try {
             return 'localStorage' in window && window['localStorage'] !== null;
@@ -25,42 +11,19 @@ class Play extends Phaser.Scene {
         }
     }
 
-    updateTimer () {
-        this.currentTime -= 1; // One second
-        if((this.currentTime <= 5) && (this.currentTime >= 1)) {
-            this.sound.play('sfx_select');
-        } else if (this.currentTime == 0) {
-            this.sound.play('game_over');
-        }
-        this.clockUI.setText(this.currentTime);
-    }
+    preload() {
 
-    speedupGame () {
-        if (this.multiplier <= 2) {
-            this.multiplier += 0.1;
-        }
+        // load music
+        //this.load.audio('battle', './assets/RetroRPG_Battle2_loop.mp3');
 
-        // update speed (x4)
-        this.p1Rocket.speedup(this.multiplier);
-        this.ship01.speedup(this.multiplier);           
-        this.ship02.speedup(this.multiplier); 
-        this.ship03.speedup(this.multiplier);
-    }
-
-    saveHighScore () {
-        if (!this.supportsLocalStorage()) { return false; }
+        // load images/tile sprites
+        this.load.image('rocket', './assets/rocket.png');
+        this.load.image('spaceship', './assets/spaceship.png');
+        this.load.image('blackbird', './assets/blackbird.png')
+        this.load.image('starfield', './assets/starfield.png');
         
-        this.savedHighScore = true;
-
-        if (game.settings.difficulty == 'novice') {
-            localStorage.setItem('savedHighScoreNovice', `${this.savedHighScore}`);
-            localStorage.setItem('highScoreNovice', `${this.highScore}`);
-        } else if (game.settings.difficulty == 'expert') {
-            localStorage.setItem('savedHighScoreExpert', `${this.savedHighScore}`);
-            localStorage.setItem('highScoreExpert', `${this.highScore}`);
-        }
-
-        return true;
+        // load spritesheet
+        this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
     }
 
     create() {
@@ -84,9 +47,19 @@ class Play extends Phaser.Scene {
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
         
         // add spaceships (x3)
-        this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*4, 'spaceship', 0, 30).setOrigin(0, 0);
-        this.ship02 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*5 + borderPadding*2, 'spaceship', 0, 20).setOrigin(0,0);
-        this.ship03 = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'spaceship', 0, 10).setOrigin(0,0);
+
+        // BlackBird 1: Agent Joe
+        this.ship00 = new BlackBird(this, game.config.width + borderUISize*8, borderUISize*3 + borderPadding*2, 'blackbird', 0, 50).setOrigin(0,0);
+
+        // Black Bird 007: Special Agent Craig
+        this.ship007 = new BlackBird(this, game.config.width + borderUISize*3, borderUISize*6 + borderPadding*2,'blackbird', 0, 50).setOrigin(0,0);
+
+        // Spaceships: Rick, Richard and Ronnie
+        this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*5, 'spaceship', 0, 30).setOrigin(0, 0);
+        this.ship02 = new Spaceship(this, game.config.width, borderUISize*8 + borderPadding*2, 'spaceship', 0, 20).setOrigin(0,0);
+        this.ship03 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*10, 'spaceship', 0, 10).setOrigin(0,0);
+
+
 
         // define keys
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -121,8 +94,6 @@ class Play extends Phaser.Scene {
         }
 
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig);
-
-        //console.log(`test: ${localStorage.getItem('this.savedHighScore')}`);
 
         if (game.settings.difficulty == 'novice') {
             this.savedHighScore = (localStorage.getItem('savedHighScoreNovice') == "true");
@@ -164,7 +135,7 @@ class Play extends Phaser.Scene {
 
         // Render Added Time Text
         this.isAddedTimeVisible = false;
-        this.extraTime = 1;
+        this.extraTime = 2;
 
         this.addTimeUI = this.add.text(game.config.width/2 + 20, borderUISize + borderPadding*2, '', clockConfig).setOrigin(0, 0);
 
@@ -219,12 +190,18 @@ class Play extends Phaser.Scene {
         
         if (!this.gameOver) {               
             this.p1Rocket.update();         // update rocket sprite
-            this.ship01.update();           // update spaceships (x3)
+            this.ship00.update();           // update spaceships (x5)
+            this.ship01.update();
             this.ship02.update();
             this.ship03.update();
+            this.ship007.update();
         } 
 
         // check collisions
+        if(this.checkCollision(this.p1Rocket, this.ship007)) {
+            this.p1Rocket.reset();
+            this.shipExplode(this.ship007); 
+        }
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship03); 
@@ -237,6 +214,50 @@ class Play extends Phaser.Scene {
             this.p1Rocket.reset();
             this.shipExplode(this.ship01);
         }
+        if(this.checkCollision(this.p1Rocket, this.ship00)) {
+            this.p1Rocket.reset();
+            this.shipExplode(this.ship00); 
+        }
+    }
+
+    updateTimer () {
+        this.currentTime -= 1; // One second
+        if((this.currentTime <= 5) && (this.currentTime >= 1)) {
+            this.sound.play('sfx_select');
+        } else if (this.currentTime == 0) {
+            this.sound.play('game_over');
+        }
+        this.clockUI.setText(this.currentTime);
+    }
+
+    speedupGame () {
+        if (this.multiplier <= 2) {
+            this.multiplier += 0.1;
+        }
+
+        // update speed (x4)
+        this.p1Rocket.speedup(this.multiplier);
+        this.ship00.speedup(this.multiplier);
+        this.ship01.speedup(this.multiplier);           
+        this.ship02.speedup(this.multiplier); 
+        this.ship03.speedup(this.multiplier);
+        this.ship007.speedup(this.multiplier);
+    }
+
+    saveHighScore () {
+        if (!this.supportsLocalStorage()) { return false; }
+        
+        this.savedHighScore = true;
+
+        if (game.settings.difficulty == 'novice') {
+            localStorage.setItem('savedHighScoreNovice', `${this.savedHighScore}`);
+            localStorage.setItem('highScoreNovice', `${this.highScore}`);
+        } else if (game.settings.difficulty == 'expert') {
+            localStorage.setItem('savedHighScoreExpert', `${this.savedHighScore}`);
+            localStorage.setItem('highScoreExpert', `${this.highScore}`);
+        }
+
+        return true;
     }
 
     checkCollision(rocket, ship) {
