@@ -13,8 +13,8 @@ class Play extends Phaser.Scene {
 
     preload() {
 
-        // load music
-        //this.load.audio('battle', './assets/RetroRPG_Battle2_loop.mp3');
+        // load particles
+        this.load.atlas('flares', 'assets/flares.png', 'assets/flares.json');
 
         // load images/tile sprites
         this.load.image('rocket', './assets/rocket.png');
@@ -59,7 +59,17 @@ class Play extends Phaser.Scene {
         this.ship02 = new Spaceship(this, game.config.width, borderUISize*8 + borderPadding*2, 'spaceship', 0, 20).setOrigin(0,0);
         this.ship03 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*10, 'spaceship', 0, 10).setOrigin(0,0);
 
-
+        this.lifespan = 350;
+        // Explosion Particles
+        this.emitter = this.add.particles(0, 0, 'flares', {
+            frame: [ 'red', 'yellow', 'green' ],
+            lifespan: this.lifespan,
+            speed: { min: 150, max: 250 },
+            scale: { start: 0.8, end: 0 },
+            gravityY: 150,
+            blendMode: 'ADD',
+            emitting: false
+        });
 
         // define keys
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -135,7 +145,7 @@ class Play extends Phaser.Scene {
 
         // Render Added Time Text
         this.isAddedTimeVisible = false;
-        this.extraTime = 2;
+        this.extraTime = 1;
 
         this.addTimeUI = this.add.text(game.config.width/2 + 20, borderUISize + borderPadding*2, '', clockConfig).setOrigin(0, 0);
 
@@ -275,15 +285,24 @@ class Play extends Phaser.Scene {
     shipExplode(ship) {
         // temporarily hide ship
         ship.alpha = 0;
-        // create explosion sprite at ship's position
-        let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
-        boom.anims.play('explode');             // play explode animation
-        boom.on('animationcomplete', () => {    // callback after anim completes
-          ship.reset();                         // reset ship position
-          ship.alpha = 1;                       // make ship visible again
-          boom.destroy();                       // remove explosion sprite
-        });       
 
+        // create explosion effect at ship's position
+        let boom = this.emitter.explode(16, ship.x, ship.y);
+        this.time.delayedCall(this.lifespan, () => {
+            ship.reset();                         // reset ship position
+            ship.alpha = 1;                       // make ship visible again
+            //boom.destroy();    
+        })
+
+        // // create explosion sprite at ship's position
+        // let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
+        // boom.anims.play('explode');             // play explode animation
+        // boom.on('animationcomplete', () => {    // callback after anim completes
+        //   ship.reset();                         // reset ship position
+        //   ship.alpha = 1;                       // make ship visible again
+        //   boom.destroy();                       // remove explosion sprite
+        // });       
+        
         // Add Time
         this.currentTime += this.extraTime;
         if (this.isAddedTimeVisible == false) {
