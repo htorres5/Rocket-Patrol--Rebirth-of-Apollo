@@ -33,5 +33,3 @@ https://fonts2u.com/pixel-nes.font
 SFX: 
 https://freesound.org/people/LittleRobotSoundFactory/packs/16681/
 https://pixabay.com/sound-effects/search/8-bit/
-
-* WIll add the ability to save highest combo to local storage like high score (after its due tho)
