@@ -90,11 +90,6 @@ class Play extends Phaser.Scene {
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-        // * SCORE UI * //
-
-        // initialize score
-        this.p1Score = 0;
-
         // display score
         this.scoreConfig = {
             fontFamily: 'Pixel_NES',
@@ -111,6 +106,43 @@ class Play extends Phaser.Scene {
             fixedWidth: 100
         }
 
+        // * COMBO UI * //
+
+        // Combo
+        this.combo = 0;
+        this.highestCombo = 0;
+        
+        if (game.settings.difficulty == 'novice') {
+            this.isComboPBSaved = (localStorage.getItem('isComboPBSavedNovice') == "true");
+            this.comboPB = (!this.isComboPBSaved) ? 0 : parseInt(localStorage.getItem('comboPBNovice'));
+        } else if (game.settings.difficulty == 'expert') {
+            this.isComboPBSaved = (localStorage.getItem('isComboPBSavedExpert') == "true");
+            this.comboPB = (!this.isComboPBSaved) ? 0 : parseInt(localStorage.getItem('comboPBExpert'));
+        }
+
+        // Combo UI 
+        this.scoreConfig.fontSize = '16px';
+        this.scoreConfig.backgroundColor = '';
+        this.scoreConfig.fixedWidth = 0;
+        this.comboUI =this.add.text(game.config.width/2, borderUISize + borderPadding*4.5, ``, this.scoreConfig).setOrigin(0.5, 0);
+
+        // Highest Combo UI
+        this.scoreConfig.align = 'right';
+        this.scoreConfig.color = '#36454f';
+        this.scoreConfig.backgroundColor = '#F3B141';
+        this.scoreConfig.fixedWidth = 100;
+        this.highestComboUI = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*4, `x${this.highestCombo}`, this.scoreConfig);
+
+        // Combo PB UI
+        this.comboPB_UI = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*4.5, `x${this.comboPB}`, this.scoreConfig).setOrigin(0.5,0)
+
+        // * SCORE UI * //
+
+        // initialize score
+        this.p1Score = 0;
+
+        this.scoreConfig.fontSize = '20px';
+        this.scoreConfig.color = '#843605';
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig);
 
         if (game.settings.difficulty == 'novice') {
@@ -120,22 +152,11 @@ class Play extends Phaser.Scene {
             this.savedHighScore = (localStorage.getItem('savedHighScoreExpert') == "true");
             this.highScore = (!this.savedHighScore) ? 0 : parseInt(localStorage.getItem('highScoreExpert'));
         }
-     
-        this.highScoreUI = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3, this.highScore, this.scoreConfig).setOrigin(0.5,0)
+        
+        this.highScoreUI = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 3, this.highScore, this.scoreConfig).setOrigin(0.5,0)
         
         this.scoreConfig.fontSize = '12px';
         this.highScoreUIText = this.add.text(game.config.width - borderUISize - borderPadding - 50, borderUISize + borderPadding*3 - 15, 'HIGH SCORE', this.scoreConfig).setOrigin(0.5,0);
-
-        // * COMBO UI * //
-
-        // Combo
-        this.combo = 0;
-
-        // Combo UI 
-        this.scoreConfig.fontSize = '16px';
-        this.scoreConfig.backgroundColor = '';
-        this.scoreConfig.fixedWidth = 0;
-        this.comboUI =this.add.text(game.config.width/2, borderUISize + borderPadding*4.5, ``, this.scoreConfig).setOrigin(0.5, 0);
 
         // * CLOCK UI * //
 
@@ -173,7 +194,8 @@ class Play extends Phaser.Scene {
         this.speedupUpdate = this.time.addEvent({ delay: 10000, callback: this.speedupGame, callbackScope: this, loop: true });
 
         // * GAME OVER * //
-
+        this.scoreConfig.color = '#843605';
+        this.scoreConfig.align = '';
         this.scoreConfig.backgroundColor = '#F3B141';
         this.scoreConfig.fontSize = '16px';
         this.scoreConfig.fixedWidth = 0;
@@ -197,7 +219,13 @@ class Play extends Phaser.Scene {
             // Save High Score
             if(this.p1Score > this.highScore) {
                 this.highScore = this.p1Score;
+                this.highScoreUI.text = `${this.highScore}`;
                 this.saveHighScore();
+                // If High Score, save highest Combo
+                this.comboPB = this.highestCombo;
+                this.comboPB_UI = `x${this.comboPB}`;
+                this.saveComboPB();
+
             }
             this.gameOver = true;
         }
@@ -248,6 +276,12 @@ class Play extends Phaser.Scene {
             this.p1Rocket.reset();
             this.shipExplode(this.ship00); 
         }
+        
+        // Save highest combo
+        if(this.combo > this.highestCombo) {
+            this.highestCombo = this.combo;
+            this.highestComboUI.text = `x${this.highestCombo}`;
+        }
 
         // break combo if hit ceiling
         if(this.p1Rocket.breakCombo == true) {
@@ -295,6 +329,23 @@ class Play extends Phaser.Scene {
         } else if (game.settings.difficulty == 'expert') {
             localStorage.setItem('savedHighScoreExpert', `${this.savedHighScore}`);
             localStorage.setItem('highScoreExpert', `${this.highScore}`);
+        }
+
+        return true;
+    }
+
+    // * Saves High Score for each game mode to local storage
+    saveComboPB () {
+        if (!this.supportsLocalStorage()) { return false; }
+        
+        this.isComboPBSaved = true;
+
+        if (game.settings.difficulty == 'novice') {
+            localStorage.setItem('isComboPBSavedNovice', `${this.isComboPBSaved}`);
+            localStorage.setItem('comboPBNovice', `${this.comboPB}`);
+        } else if (game.settings.difficulty == 'expert') {
+            localStorage.setItem('isComboPBSavedExpert', `${this.isComboPBSaved}`);
+            localStorage.setItem('comboPBExpert', `${this.comboPB}`);
         }
 
         return true;
